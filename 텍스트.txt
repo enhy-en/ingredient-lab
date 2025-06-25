@@ -1,0 +1,533 @@
+이니스프리 사이트
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이니스프리 스킨/토너 추천</title>
+    <!-- Tailwind CSS CDN 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter 폰트 설정 */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        /* 기능 키워드 스타일 */
+        .function-tag {
+            @apply px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium cursor-pointer hover:bg-green-200 transition-colors duration-150 ease-in-out;
+            white-space: nowrap; /* 줄바꿈 방지 */
+        }
+        /* 로딩 스피너 스타일 */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #34d399; /* Green */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-emerald-50 to-green-100 min-h-screen flex items-center justify-center p-4">
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
+        <!-- 웹사이트 제목 -->
+        <h1 class="text-4xl font-extrabold text-center text-green-700 mb-6 tracking-tight">
+            기초 탄탄 이니스프리 스킨케어 추천 🌿
+        </h1>
+        <!-- 웹사이트 설명 -->
+        <p class="text-center text-gray-600 mb-2 max-w-2xl mx-auto leading-relaxed">
+            원하는 키워드를 입력하거나 기능을 설명하여 이니스프리 제품을 찾아보세요!
+            (예: "보습과 진정 기능이 있는 스킨 찾아줘", "트러블 케어 앰플 추천")
+        </p>
+        <p class="text-center text-gray-500 text-sm mb-8 max-w-2xl mx-auto leading-relaxed">
+            제품 정보를 클릭하시면 해당 제품의 상세 페이지로 이동합니다.
+        </p>
+
+        <!-- 키워드 입력 및 검색 섹션 -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <label for="search-input" class="sr-only">제품 검색:</label>
+            <input type="text" id="search-input" placeholder="원하는 제품을 설명해주세요 (예: 보습, 트러블 케어)"
+                   class="block w-full sm:w-1/2 md:w-auto p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 text-gray-700 transition duration-150 ease-in-out">
+            <button id="search-button"
+                    class="w-full sm:w-auto px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 ease-in-out transform hover:scale-105 flex items-center justify-center">
+                <span id="button-text">제품 찾기</span>
+                <div id="loading-spinner" class="loader ml-2 hidden"></div>
+            </button>
+        </div>
+
+        <!-- 기능 키워드 섹션 -->
+        <div class="flex flex-wrap justify-center gap-2 mb-10" id="function-keywords-container">
+            <!-- 기능 키워드 태그가 여기에 동적으로 생성됩니다 -->
+        </div>
+
+        <!-- 제품 목록을 표시할 영역 -->
+        <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 제품 카드가 여기에 동적으로 표시됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        // 제품 데이터 (이니스프리 스킨/토너 및 앰플 제품 예시 데이터)
+        const products = [
+            {
+                "name": "이니스프리 청보리 마일드 필링 토너",
+                "function": ["각질 케어", "피부결 개선"],
+                "description": "청보리 추출물이 각질을 부드럽게 제거하여 매끈하고 맑은 피부결로 가꿔줍니다.",
+                "volume": "250ml",
+                "price": "17,000원",
+                "image_url": "https://image.zigzag.kr/cdn/images/goods/141301785/20220624/e90637df9023d5d71c637a28e9d36577.jpeg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37400"
+            },
+            {
+                "name": "이니스프리 레티놀 그린티 PDRN 스킨부스터 토너",
+                "function": ["안티에이징", "탄력", "피부 장벽 강화"],
+                "description": "레티놀과 그린티 PDRN 성분이 피부 탄력을 높여주고 장벽을 강화합니다.",
+                "volume": "170ml",
+                "price": "25,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/38024/img_thumb_38024_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/38024"
+            },
+            {
+                "name": "이니스프리 퍼펙트 9 인텐시브 스킨",
+                "function": ["탄력", "주름개선", "미백", "영양"],
+                "description": "9가지 복합 성분이 피부 노화 징후를 집중 케어하여 건강하고 탄탄한 피부를 선사합니다.",
+                "volume": "200ml",
+                "price": "36,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34716/img_thumb_34716_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34716"
+            },
+            {
+                "name": "이니스프리 화산송이 파하 모공 매끈결 토너",
+                "function": ["모공 케어", "각질 케어", "피지 조절"],
+                "description": "화산송이와 PHA 성분이 늘어진 모공과 과도한 피지를 케어하여 매끈한 피부결로 정돈합니다.",
+                "volume": "170ml",
+                "price": "20,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/35576/img_thumb_35576_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/35576"
+            },
+            {
+                "name": "이니스프리 한란 스킨",
+                "function": ["탄력", "주름개선", "영양", "보습"],
+                "description": "제주 한란의 강인한 생명력으로 탄탄하고 윤기 있는 피부를 선사하는 스킨",
+                "volume": "170ml",
+                "price": "23,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/36782/img_thumb_36782_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36782"
+            },
+            {
+                "name": "이니스프리 올리브 비타민 E 리얼 스킨",
+                "function": ["보습", "영양", "피부 장벽 강화"],
+                "description": "제주 유기농 올리브 오일과 비타민 E가 피부에 풍부한 보습과 영양을 공급합니다.",
+                "volume": "1700ml",
+                "price": "18,000원",
+                "image_url": "https://shop.amorepacific.com/file/upload/img/amore_mall/kr/ko/product/detail/main/1114201700465_001.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36826"
+            },
+            {
+                "name": "이니스프리 그린티 히알루론산 스킨",
+                "function": ["보습", "수분", "진정"],
+                "description": "제주 녹차수와 5중 히알루론산이 피부에 깊은 수분감을 전달하고 진정시켜줍니다.",
+                "volume": "170ml",
+                "price": "19,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34508/img_thumb_34508_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34508"
+            },
+            {
+                "name": "이니스프리 블루베리 리밸런싱 스킨",
+                "function": ["피부 밸런스", "약산성", "진정"],
+                "description": "블루베리 추출물이 피부의 pH 밸런스를 맞춰주고 건강하게 가꿔줍니다.",
+                "volume": "150ml",
+                "price": "9,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/36901/img_thumb_36901_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36901"
+            },
+            {
+                "name": "이니스프리 꽃송이버섯 바이탈 스킨",
+                "function": ["탄력", "영양", "생기"],
+                "description": "제주 꽃송이버섯의 풍부한 영양으로 피부에 탄력과 생기를 부여합니다.",
+                "volume": "200ml",
+                "price": "30,000원",
+                "image_url": "https://m.innisfree.com/kr/ko/resources/product/37705/img_thumb_37705_1.jpg",
+                "product_url": "https://m.innisfree.com/kr/ko/dp/product/37705"
+            },
+            {
+                "name": "이니스프리 비자 트러블 토너",
+                "function": ["트러블 케어", "피지 조절", "각질 케어", "진정"],
+                "description": "피부 보호력을 지닌 비자 오일을 함유한 닦아내는 타입의 산뜻한 토너",
+                "volume": "170ml",
+                "price": "19,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/37120/img_thumb_37120_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37120"
+            },
+            {
+                "name": "이니스프리 블랙티 유스 인핸싱 스킨",
+                "function": ["탄력", "보습", "미백", "피부결 개선", "안티에이징"],
+                "description": "피부 피로를 리셋하는 제주 블랙티 성분의 안티에이징 스킨",
+                "volume": "170ml",
+                "price": "25,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34500/img_thumb_34500_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34500"
+            },
+            {
+                "name": "이니스프리 레티놀 시카 흔적 앰플",
+                "function": ["트러블 케어", "모공 케어", "잡티 케어", "피부결 개선", "안티에이징", "진정"],
+                "description": "레티놀과 시카 성분으로 피부 흔적, 모공, 피부결 고민을 케어하는 고효능 수분 앰플",
+                "volume": "30ml",
+                "price": "40,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34506/img_thumb_34506_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34505"
+            },
+            {
+                "name": "이니스프리 그린티 씨드 히알루론산 세럼",
+                "function": ["보습", "수분", "속건조 개선", "저자극"],
+                "description": "제주 녹차수와 히알루론산이 피부 속건조를 빠르게 해결하고 수분 밸런스를 맞춰주는 수분 세럼",
+                "volume": "80ml",
+                "price": "31,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34116/img_thumb_34116_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34116"
+            },
+            {
+                "name": "이니스프리 비타민C 7일 톤업 세럼/브라이트닝 화이트닝 저자극 톤업 비타민C ",
+                "function": ["미백", "잡티 케어", "피부톤 개선", "각질 케어", "항산화"],
+                "description": "비타민C와 제주 녹차 엔자임이 피부톤과 피부결을 케어하여 매끈하고 투명한 피부로 가꿔주는 잡티 토닝 세럼",
+                "volume": "30ml",
+                "price": "38,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/37328/img_thumb_37328_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37271"
+            },
+            {
+                "name": "이니스프리 블랙티 유스 인핸싱 앰플",
+                "function": ["안티에이징", "항산화", "탄력", "피부 컨디션 개선"],
+                "description": "피부 피로를 리셋하는 이니스프리 대표 항산화 앰플로, 지친 피부 컨디션을 케어하여 건강하고 빛나는 피부를 완성합니다.",
+                "volume": "30ml",
+                "price": "40,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34502/img_thumb_34502_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34496"
+            },
+            {
+                "name": "이니스프리 레티놀 그린티 PDRN 스킨부스터 앰플",
+                "function": ["안티에이징", "탄력", "피부 장벽 강화", "보습"],
+                "description": "레티놀과 그린티 PDRN 성분이 피부 탄력을 높여주고 장벽을 강화하는 앰플",
+                "volume": "25ml",
+                "price": "40,000원",
+                "image_url": "https://www.amoremall.com/upload/prod/202403/63620_20240318114138092.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37500"
+            },
+            {
+                "name": "이니스프리 그린티 히알루론산 진정수분 선세럼",
+                "function": ["진정", "수분", "자외선 차단", "피부 장벽 강화", "광노화 케어"],
+                "description": "자외선으로 자극 받은 피부의 진정, 장벽 개선 및 광노화 징후까지 케어 해 건강하고 촉촉하게 빛나는 피부로 만들어 주는 진정수분 선세럼",
+                "volume": "50ml",
+                "price": "25,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/100510/img_thumb_100510_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/100510"
+            },
+            {
+                "name": "이니스프리 트루 비타민 C 23 앰플",
+                "function": ["미백", "잡티 케어", "피부톤 개선", "항산화"],
+                "description": "순수 비타민C 20% 함유로 강력한 미백과 잡티 케어 효과를 선사하는 고효능 앰플입니다.",
+                "volume": "20ml",
+                "price": "35,000원",
+                "image_url": "https://image.innisfree.co.kr/upload/product/2021/02/100000010472_main_01_760x760.png",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37740"
+            },
+            {
+                "name": "이니스프리 마키토이 그린티 리미티드 에디션 수분 히알루론산 세럼",
+                "function": ["보습", "수분", "저자극", "피부 장벽 강화"],
+                "description": "제주 녹차와 캡슐화된 히알루론산이 피부 속건조를 즉각적으로 개선하고 피부 장벽을 강화하는 리미티드 에디션 수분 세럼입니다.",
+                "volume": "130ml",
+                "price": "45,000원",
+                "image_url": "https://placehold.co/120x120/E0F2F1/004D40?text=마키토이+세럼",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/100752"
+            },
+            {
+                "name": "이니스프리 한란 인리치드 에센스",
+                "function": ["탄력", "영양", "주름개선"],
+                "description": "제주 한란의 강력한 생명력으로 피부에 풍부한 영양과 탄력을 선사하는 안티에이징 에센스입니다.",
+                "volume": "50ml",
+                "price": "33,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34509/img_thumb_34509_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36784"
+            },
+            {
+                "name": "이니스프리 그린티 히알루론산 로션",
+                "function": ["수분", "보습", "유수분 밸런스", "저자극"],
+                "description": "피부의 유수분 밸런스를 맞춰주고 빠르게 흡수되어 끈적임 없이 촉촉한 마무리감을 선사하는 로션입니다.",
+                "volume": "170ml",
+                "price": "21,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34509/img_thumb_34509_2.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34509"
+            },
+            {
+                "name": "이니스프리 올리브 비타민 E 리얼 로션",
+                "function": ["보습", "영양", "탄력"],
+                "description": "제주 유기농 올리브 오일의 영양 성분이 피부에 풍부한 보습과 탄력을 공급하는 로션입니다.",
+                "volume": "170ml",
+                "price": "20,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34762/img_thumb_34762_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36827"
+            },
+            {
+                "name": "이니스프리 블루베리 리밸런싱 로션",
+                "function": ["피부 밸런스", "약산성", "진정", "수분"],
+                "description": "블루베리 추출물이 피부의 pH 밸런스를 건강하게 맞춰주고 촉촉함을 더해주는 약산성 로션입니다.",
+                "volume": "130ml",
+                "price": "9,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/36901/img_thumb_36901_2.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/37067"
+            },
+            {
+                "name": "이니스프리 그린티 씨드 히알루론산 크림",
+                "function": ["수분", "보습", "진정", "피부 장벽 강화", "저자극"],
+                "description": "뷰티 그린티와 히알루론산이 피부에 깊은 수분감을 제공하고 피부 장벽을 강화하는 비건 인증 수분 크림입니다.",
+                "volume": "50ml",
+                "price": "27,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34510/img_thumb_34510_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34510"
+            },
+            {
+                "name": "이니스프리 콜라겐 그린티 세라마이드 탄력장벽 크림",
+                "function": ["탄력", "피부 장벽 강화", "영양", "보습"],
+                "description": "콜라겐, 그린티, 세라마이드 성분이 피부 탄력과 장벽을 강화하고 깊은 영양감을 선사하는 크림입니다.",
+                "volume": "50ml",
+                "price": "39,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/37600/img_thumb_37600_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/36831"
+            },
+            {
+                "name": "이니스프리 블랙티 유스 인핸싱 크림",
+                "function": ["안티에이징", "항산화", "탄력", "영양"],
+                "description": "피부 피로를 리셋하는 제주 블랙티 성분이 피부를 탄탄하고 생기 있게 가꿔주는 안티에이징 크림입니다.",
+                "volume": "50ml",
+                "price": "36,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/34503/img_thumb_34503_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/34502"
+            },
+            {
+                "name": "이니스프리 레티놀 시카 흔적 장벽 크림",
+                "function": ["트러블 케어", "피부 장벽 강화", "진정", "보습"],
+                "description": "레티놀과 시카 성분이 피부 흔적과 장벽 고민을 동시에 케어하며 피부를 편안하게 진정시켜주는 크림입니다.",
+                "volume": "50ml",
+                "price": "35,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/38023/img_thumb_38023_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/35256"
+            },
+            {
+                "name": "이니스프리 비타민C 잡티토닝크림/ 캡슐 수분크림",
+                "function": ["미백", "수분", "피부톤 개선", "항산화"],
+                "description": "비타민C 캡슐이 피부에 생기와 수분을 공급하여 맑고 환한 피부톤으로 가꿔주는 수분 크림입니다.",
+                "volume": "50ml",
+                "price": "32,000원",
+                "image_url": "https://www.innisfree.com/kr/ko/resources/product/37329/img_thumb_37329_1.jpg",
+                "product_url": "https://www.innisfree.com/kr/ko/dp/product/38092" // Updated URL
+            }
+        ];
+
+        // 모든 기능 옵션을 추출하고 중복을 제거한 후 정렬합니다.
+        const allFunctions = [...new Set(products.flatMap(product => product.function))].sort();
+
+        // HTML 요소 참조
+        const searchInput = document.getElementById('search-input'); // 검색 입력 필드
+        const searchButton = document.getElementById('search-button');
+        const productListDiv = document.getElementById('product-list');
+        const functionKeywordsContainer = document.getElementById('function-keywords-container'); // 기능 키워드 컨테이너
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const buttonText = document.getElementById('button-text');
+
+
+        /**
+         * 제품의 중복 여부를 확인하는 함수
+         * @param {Object} newProduct - 새로 추가할 제품 객체
+         * @param {Array<Object>} existingProducts - 기존 제품 객체 배열
+         * @returns {boolean} - 중복되면 true, 아니면 false
+         */
+        function isDuplicateProduct(newProduct, existingProducts) {
+            return existingProducts.some(existingProduct =>
+                existingProduct.name === newProduct.name && existingProduct.volume === newProduct.volume
+            );
+        }
+
+        /**
+         * 기능 키워드 태그를 동적으로 생성하는 함수
+         */
+        function createFunctionKeywords() {
+            functionKeywordsContainer.innerHTML = ''; // 기존 키워드 초기화
+
+            allFunctions.forEach(func => {
+                const span = document.createElement('span');
+                span.classList.add('function-tag');
+                span.textContent = func;
+                span.addEventListener('click', () => {
+                    searchInput.value = func; // 클릭 시 입력 칸에 키워드 설정
+                    searchButton.click();      // 검색 버튼 클릭 이벤트 트리거
+                });
+                functionKeywordsContainer.appendChild(span);
+            });
+        }
+
+        /**
+         * LLM을 호출하여 텍스트에서 화장품 기능을 추출하는 함수
+         * @param {string} query - 사용자 입력 텍스트
+         * @returns {Promise<Array<string>>} - 추출된 기능 배열
+         */
+        async function getFunctionsFromLLM(query) {
+            loadingSpinner.classList.remove('hidden');
+            buttonText.classList.add('hidden');
+            try {
+                let chatHistory = [];
+                const prompt = `사용자의 입력에서 화장품 기능을 추출하여 JSON 배열 형태로 반환하세요. (예: '보습', '진정', '미백', '트러블 케어', '탄력', '저자극', '각질 케어', '모공 케어', '안티에이징', '영양', '피부결 개선', '피부 장벽 강화', '피지 조절', '수분', '약산성', '생기', '주름개선', '잡티 케어', '피부톤 개선', '항산화', '피부 컨디션 개선', '자외선 차단', '광노화 케어', '남성용'). 만약 해당되는 기능이 없으면 빈 배열을 반환하세요. \n\n사용자 입력: ${query}`;
+
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: { "type": "STRING" }
+                        }
+                    }
+                };
+                const apiKey = ""; // Canvas will automatically provide it in runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    // API 응답에서 불필요한 마크다운 백틱 제거
+                    const cleanedJsonString = jsonString.replace(/```json\n|\n```/g, '');
+                    const parsedJson = JSON.parse(cleanedJsonString);
+                    return parsedJson;
+                } else {
+                    console.log("LLM 응답에서 내용이 없거나 형식이 잘못되었습니다.", result);
+                    return [];
+                }
+            } catch (error) {
+                console.error("LLM 호출 중 오류 발생:", error);
+                return [];
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                buttonText.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * 제품 목록을 HTML에 동적으로 표시하는 함수
+         * @param {Array<Object>} filteredProducts - 표시할 제품 객체 배열
+         */
+        function displayProducts(filteredProducts) {
+            productListDiv.innerHTML = ''; // 기존 목록 초기화
+
+            // 필터링된 제품이 없을 경우 메시지 표시
+            if (filteredProducts.length === 0) {
+                productListDiv.innerHTML = `
+                    <div class="col-span-full text-center text-gray-500 text-lg py-10">
+                        선택하신 키워드/기능에 해당하는 제품이 없습니다. 😢
+                    </div>
+                `;
+                return;
+            }
+
+            // 각 제품을 순회하며 카드 생성 및 추가
+            filteredProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.classList.add(
+                    'product-card',
+                    'border', 'border-gray-200', 'rounded-xl', 'p-6', 'text-center',
+                    'bg-white', 'shadow-md', 'hover:shadow-lg', 'transition', 'duration-300', 'ease-in-out',
+                    'transform', 'hover:-translate-y-1'
+                );
+
+                // 제품 카드 내부 HTML 구조
+                productCard.innerHTML = `
+                    <a href="${product.product_url}" target="_blank" rel="noopener noreferrer" class="block h-full">
+                        <h3 class="text-xl font-bold text-green-800 mb-2">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-3">${product.description}</p>
+                        <div class="flex justify-between items-center mt-auto pt-3 border-t border-gray-100">
+                            <p class="text-gray-500 text-sm">용량: ${product.volume}</p>
+                            <p class="text-green-600 font-semibold text-lg">${product.price}</p>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-2">
+                            <span class="font-semibold text-gray-700">기능:</span> ${product.function.join(', ')}
+                        </p>
+                    </a>
+                `;
+                productListDiv.appendChild(productCard);
+            });
+        }
+
+        // "제품 찾기" 버튼 클릭 이벤트 리스너
+        searchButton.addEventListener('click', async () => {
+            const userQuery = searchInput.value.trim();
+
+            if (userQuery === "") {
+                displayProducts(products); // 입력이 없으면 모든 제품 표시
+                return;
+            }
+
+            // LLM을 사용하여 기능 추출 시도
+            const extractedFunctions = await getFunctionsFromLLM(userQuery);
+
+            let filteredProducts = [];
+
+            if (extractedFunctions.length > 0) {
+                // LLM이 기능을 추출했다면, 추출된 기능 중 하나라도 포함하는 제품 필터링
+                filteredProducts = products.filter(product =>
+                    extractedFunctions.some(extractedFunc => product.function.includes(extractedFunc))
+                );
+                // 만약 LLM으로 찾은 제품이 없으면, 전체 검색어로 다시 시도
+                if (filteredProducts.length === 0) {
+                    const searchTermLower = userQuery.toLowerCase();
+                    filteredProducts = products.filter(product => {
+                        const nameMatches = product.name.toLowerCase().includes(searchTermLower);
+                        const descriptionMatches = product.description.toLowerCase().includes(searchTermLower);
+                        const functionMatches = product.function.some(func => func.toLowerCase().includes(searchTermLower));
+                        return nameMatches || descriptionMatches || functionMatches;
+                    });
+                }
+
+            } else {
+                // LLM이 기능을 추출하지 못했다면, 일반 키워드 검색 수행
+                const searchTermLower = userQuery.toLowerCase();
+                filteredProducts = products.filter(product => {
+                    const nameMatches = product.name.toLowerCase().includes(searchTermLower);
+                    const descriptionMatches = product.description.toLowerCase().includes(searchTermLower);
+                    const functionMatches = product.function.some(func => func.toLowerCase().includes(searchTermLower));
+                    return nameMatches || descriptionMatches || functionMatches;
+                });
+            }
+
+            displayProducts(filteredProducts);
+        });
+
+        // 엔터 키 입력 시 검색 실행
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+
+        // 페이지 로드 시 기능 키워드 생성 및 모든 제품 초기 표시
+        // DOMContentLoaded 이벤트 리스너를 사용하여 DOM이 완전히 로드된 후에 함수를 실행합니다.
+        document.addEventListener('DOMContentLoaded', () => {
+            createFunctionKeywords();
+            displayProducts(products);
+        });
+    </script>
+</body>
+</html>
